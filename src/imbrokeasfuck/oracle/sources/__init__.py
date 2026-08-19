@@ -11,7 +11,7 @@ from .hackathons_space import fetch_hackathons_space
 from .defai_hackathons import fetch_defai_hackathons
 from .grants import fetch_grants
 from .bug_bounties import fetch_bug_bounties
-from .hackathon_platforms import fetch_hackathon_platforms
+from .hackathon_platforms import fetch_all_hackathon_platforms
 from .forums import fetch_forums
 from .defai_protocols import fetch_defai_protocols
 
@@ -23,7 +23,7 @@ ALL_SOURCES = {
     "grants": {"fn": fetch_grants, "type": "build", "priority": "B"},
     "defai_hackathons": {"fn": fetch_defai_hackathons, "type": "build", "priority": "A"},
     "hackathons_space": {"fn": fetch_hackathons_space, "type": "build", "priority": "A"},
-    "hackathon_platforms": {"fn": fetch_hackathon_platforms, "type": "build", "priority": "B"},
+    "hackathon_platforms": {"fn": fetch_all_hackathon_platforms, "type": "build", "priority": "B"},
     "bug_bounties": {"fn": fetch_bug_bounties, "type": "build", "priority": "A"},
     # Serve-to-earn
     "x402": {"fn": discover_x402_services, "type": "serve", "priority": "S"},
