@@ -11,6 +11,8 @@ from .oracle.bittensor_economics import format_all_economics, format_economics, 
 from .earn.factory import FACTORY_REGISTRY, FactoryState
 from .earn.revenue import RECOMMENDED_CHANNELS
 from .earn.strategy import format_strategy, strategy_dict
+from .earn.hackathons import format_hackathons, hackathon_dict
+from .earn.wiggly import format_wiggly_reuse
 
 
 def main():
@@ -30,6 +32,8 @@ def main():
     p.add_argument("--superteam", action="store_true", help="Check Superteam agent API")
     p.add_argument("--revenue", action="store_true", help="Show serve-to-earn revenue channels")
     p.add_argument("--strategy", action="store_true", help="Show 60/25/15 strategy")
+    p.add_argument("--hackathons", action="store_true", help="Show hackathon targets")
+    p.add_argument("--wiggly", type=str, help="Show Wiggly reuse for hackathon (e.g. --wiggly telegraph)")
     args = p.parse_args()
 
     if args.oracle:
@@ -145,6 +149,13 @@ def main():
             print(json.dumps(strategy_dict(), indent=2, default=str))
         else:
             print(format_strategy())
+    elif args.hackathons:
+        if args.json:
+            print(json.dumps(hackathon_dict(), indent=2, default=str))
+        else:
+            print(format_hackathons())
+    elif args.wiggly:
+        print(format_wiggly_reuse(args.wiggly))
     elif args.bittensor:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:
