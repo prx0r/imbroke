@@ -8,6 +8,7 @@ from .bittensor import fetch_bittensor_data, format_opportunities
 from .oracle import ingest_all
 from .oracle.github_signals import scan_all_github_signals
 from .oracle.bittensor_economics import format_all_economics, format_economics, SUBNET_CONTRACTS
+from .earn.factory import FACTORY_REGISTRY, FactoryState
 
 
 def main():
@@ -22,6 +23,9 @@ def main():
     p.add_argument("--github", action="store_true", help="Scan GitHub for early signals")
     p.add_argument("--economics", action="store_true", help="Show miner economics calculations")
     p.add_argument("--contract", type=int, help="Show contract details for subnet (e.g. --contract 118)")
+    p.add_argument("--factory", type=int, help="Run factory for subnet (e.g. --factory 118)")
+    p.add_argument("--factories", action="store_true", help="Show all factory statuses")
+    p.add_argument("--superteam", action="store_true", help="Check Superteam agent API")
     args = p.parse_args()
 
     if args.oracle:
@@ -73,6 +77,48 @@ def main():
         else:
             print(f"Unknown subnet: {args.contract}")
             print(f"Available: {', '.join(str(k) for k in sorted(SUBNET_CONTRACTS.keys()))}")
+    elif args.factory:
+        subnet = args.factory
+        if subnet in FACTORY_REGISTRY:
+            factory = FACTORY_REGISTRY[subnet]()
+            factory.initialize()
+            print(f"\n{'='*60}")
+            print(f"  Factory: {factory.name} (SN{subnet})")
+            print(f"{'='*60}\n")
+            for i in range(5):
+                result = factory.step()
+                print(f"  Step {i+1}: {result.get('action')} - gen={result.get('generation', factory.generation)}")
+                if "population_stats" in result:
+                    ps = result["population_stats"]
+                    print(f"    Niches: {ps['niches_filled']}/{ps['niches_total']} filled, {ps['total_candidates']} candidates")
+            print(f"\n  Summary:")
+            s = factory.summary()
+            for k, v in s.items():
+                if isinstance(v, dict):
+                    print(f"    {k}: ...")
+                else:
+                    print(f"    {k}: {v}")
+        else:
+            print(f"No factory for subnet {subnet}")
+            print(f"Available: {', '.join(str(k) for k in sorted(FACTORY_REGISTRY.keys()))}")
+    elif args.factories:
+        print(f"\n{'='*60}")
+        print(f"  FACTORY STATUS")
+        print(f"{'='*60}\n")
+        for subnet, creator in sorted(FACTORY_REGISTRY.items()):
+            factory = creator()
+            print(f"  SN{subnet:<4} {factory.name:<25} {factory.state.value:<12} {factory.artifact_type}")
+        print(f"\n{'='*60}")
+    elif args.superteam:
+        from .earn.superteam import check_superteam_api_health, fetch_superteam_agent_listings
+        health = asyncio.run(check_superteam_api_health())
+        print(f"\n  Superteam API: {health['status']}")
+        if health["status"] == "ok":
+            print(f"  Listings: {health['listings_count']}")
+            listings = asyncio.run(fetch_superteam_agent_listings())
+            print(f"  Opportunities: {len(listings)}")
+            for opp in listings[:5]:
+                print(f"    [{opp.rating}] {opp.kind:<10} fit={opp.reuse_score:.0%}  {opp.title[:50]}")
     elif args.bittensor:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:
