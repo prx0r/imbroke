@@ -5,20 +5,50 @@ import json
 import sys
 from .tracker import fetch_all, format_report
 from .bittensor import fetch_bittensor_data, format_opportunities
+from .oracle import ingest_all
+from .oracle.github_signals import scan_all_github_signals
 
 
 def main():
     import argparse
-    p = argparse.ArgumentParser(prog="ibf", description="Crypto AI project tracker + opportunity radar")
+    p = argparse.ArgumentParser(prog="ibf", description="Crypto AI project tracker + opportunity oracle")
     p.add_argument("--json", action="store_true", help="Output raw JSON")
     p.add_argument("--project", "-p", help="Show single project by slug")
     p.add_argument("--ops", action="store_true", help="Show opportunity radar")
+    p.add_argument("--oracle", action="store_true", help="Run full opportunity oracle")
     p.add_argument("--bittensor", action="store_true", help="Show Bittensor subnet data")
-    p.add_argument("--grants", action="store_true", help="Show grant programs")
     p.add_argument("--tao", action="store_true", help="Show TAO price only")
+    p.add_argument("--github", action="store_true", help="Scan GitHub for early signals")
     args = p.parse_args()
 
-    if args.ops:
+    if args.oracle:
+        data = asyncio.run(ingest_all())
+        if args.json:
+            print(json.dumps(data, indent=2, default=str))
+        else:
+            print(f"\n{'='*70}")
+            print(f"  OPPORTUNITY ORACLE - {data['total']} opportunities")
+            print(f"{'='*70}\n")
+            for opp in data["opportunities"]:
+                r = opp.get("rating", "?")
+                rec = opp.get("recommendation", "?")
+                kind = opp.get("kind", "?")
+                title = opp.get("title", "?")[:55]
+                fit = opp.get("reuse_score", 0)
+                print(f"  [{r}] {rec:<12} {kind:<12} fit={fit:.0%}  {title}")
+            print(f"\n{'='*70}")
+    elif args.github:
+        data = asyncio.run(scan_all_github_signals())
+        if args.json:
+            print(json.dumps(data, indent=2, default=str))
+        else:
+            print(f"\n{'='*70}")
+            print(f"  GITHUB EARLY SIGNALS - {len(data)} signals")
+            print(f"{'='*70}\n")
+            for s in data:
+                print(f"  [{s['type']:<8}] {s['repo']:<30} {s.get('keyword','')}")
+            print(f"\n{'='*70}")
+    elif args.ops:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:
             print(json.dumps(data, indent=2, default=str))
@@ -40,8 +70,7 @@ def main():
         if proj:
             print(json.dumps(proj, indent=2, default=str))
         else:
-            print(f"Unknown project: {args.project}")
-            print(f"Available: {', '.join(sorted(data.get('projects', {}).keys()))}")
+            print(f"Unknown: {args.project}")
             sys.exit(1)
     elif args.json:
         data = asyncio.run(fetch_all())

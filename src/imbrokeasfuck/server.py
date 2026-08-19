@@ -15,6 +15,10 @@ class Handler(SimpleHTTPRequestHandler):
             self._serve_json(self._fetch_projects())
         elif self.path == "/api/opps":
             self._serve_json(self._fetch_opps())
+        elif self.path == "/api/oracle":
+            self._serve_json(self._fetch_oracle())
+        elif self.path == "/api/github-signals":
+            self._serve_json(self._fetch_github())
         elif self.path.startswith("/api/fear-greed"):
             self._serve_json(self._fetch_fg())
         elif self.path == "/" or self.path == "/index.html":
@@ -48,6 +52,14 @@ class Handler(SimpleHTTPRequestHandler):
             return fg[0] if fg else {}
         except Exception:
             return {}
+
+    def _fetch_oracle(self):
+        from imbrokeasfuck.oracle import ingest_all
+        return asyncio.run(ingest_all())
+
+    def _fetch_github(self):
+        from imbrokeasfuck.oracle.github_signals import scan_all_github_signals
+        return asyncio.run(scan_all_github_signals())
 
     def log_message(self, format, *args):
         pass  # Suppress logs
