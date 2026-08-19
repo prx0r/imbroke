@@ -1,26 +1,36 @@
-"""Web server for imbrokeasfuck dashboard."""
+"""Web server — API endpoints matching Dell patterns."""
 from __future__ import annotations
 import asyncio
 import json
 import os
+from datetime import datetime
 from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 from pathlib import Path
 
 WEB_DIR = Path(__file__).resolve().parent.parent.parent / "web"
 
+
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/api/projects":
-            self._serve_json(self._fetch_projects())
-        elif self.path == "/api/opps":
-            self._serve_json(self._fetch_opps())
-        elif self.path == "/api/oracle":
-            self._serve_json(self._fetch_oracle())
-        elif self.path == "/api/github-signals":
-            self._serve_json(self._fetch_github())
-        elif self.path.startswith("/api/fear-greed"):
-            self._serve_json(self._fetch_fg())
+        routes = {
+            "/api/v1/models": self._models,
+            "/api/v1/opportunities": self._opportunities,
+            "/api/v1/hackathons": self._hackathons,
+            "/api/v1/subnets": self._subnets,
+            "/api/v1/economics": self._economics,
+            "/api/v1/deals": self._deals,
+            "/api/v1/deals/live": self._deals_live,
+            "/api/v1/deals/expiring": self._deals_expiring,
+            "/api/v1/prices": self._prices,
+            "/api/v1/fear-greed": self._fear_greed,
+            "/api/v1/stats": self._stats,
+            "/api/v1/validate": self._validate,
+            "/api/v1/strategy": self._strategy,
+        }
+        handler = routes.get(self.path)
+        if handler:
+            self._serve_json(handler())
         elif self.path == "/" or self.path == "/index.html":
             self.path = "/index.html"
             super().do_GET()
@@ -34,35 +44,74 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data, default=str).encode())
 
-    def _fetch_projects(self):
-        from imbrokeasfuck.tracker import fetch_all
-        return asyncio.run(fetch_all())
+    def _models(self):
+        from imbrokeasfuck.tracker import PROJECTS
+        return {k: {"name": v.get("name", k), "category": v.get("category")} for k, v in PROJECTS.items()}
 
-    def _fetch_opps(self):
-        from imbrokeasfuck.bittensor import fetch_bittensor_data, GRANTS, BOUNTY_PLATFORMS
-        data = asyncio.run(fetch_bittensor_data())
-        data["grants"] = GRANTS
-        data["bounties"] = BOUNTY_PLATFORMS
-        return data
+    def _opportunities(self):
+        from imbrokeasfuck.oracle.feeds import ingest_all
+        return asyncio.run(ingest_all())
 
-    def _fetch_fg(self):
+    def _hackathons(self):
+        from imbrokeasfuck.earn.hackathons import HACKATHONS
+        return {k: {"name": v.name, "deadline": v.deadline, "prize": v.prize_pool} for k, v in HACKATHONS.items()}
+
+    def _subnets(self):
+        from imbrokeasfuck.oracle.bittensor_economics import SUBNET_CONTRACTS
+        return {str(k): {"name": v.name, "miner_pool": v.miner_pool_tao_day} for k, v in SUBNET_CONTRACTS.items()}
+
+    def _economics(self):
+        from imbrokeasfuck.oracle.bittensor_economics import SUBNET_CONTRACTS
+        return {str(k): {"pool": v.miner_pool_tao_day, "fee": v.submission_cost_tao} for k, v in SUBNET_CONTRACTS.items()}
+
+    def _deals(self):
+        from imbrokeasfuck.tracker import PROJECTS
+        return [{"id": k, **v} for k, v in PROJECTS.items()]
+
+    def _deals_live(self):
+        from imbrokeasfuck.tracker import PROJECTS
+        return [{"id": k, **v} for k, v in PROJECTS.items()]
+
+    def _deals_expiring(self):
+        from imbrokeasfuck.tracker import PROJECTS
+        return [{"id": k, **v} for k, v in PROJECTS.items()]
+
+    def _prices(self):
+        from imbrokeasfuck.apis import coingecko_price
+        return asyncio.run(coingecko_price(["bitcoin", "ethereum", "bittensor"]))
+
+    def _fear_greed(self):
         from imbrokeasfuck.apis import fear_greed
         try:
             fg = asyncio.run(fear_greed(1))
             return fg[0] if fg else {}
-        except Exception:
+        except:
             return {}
 
-    def _fetch_oracle(self):
-        from imbrokeasfuck.oracle import ingest_all
-        return asyncio.run(ingest_all())
+    def _stats(self):
+        from imbrokeasfuck.oracle.sources import ALL_SOURCES
+        return {"sources": len(ALL_SOURCES), "status": "ok"}
 
-    def _fetch_github(self):
-        from imbrokeasfuck.oracle.github_signals import scan_all_github_signals
-        return asyncio.run(scan_all_github_signals())
+    def _validate(self):
+        from imbrokeasfuck.oracle.three_pass import KEY_FACTS, check_source
+        async def _run():
+            results = []
+            for f in KEY_FACTS:
+                checks = []
+                for src in f["sources"]:
+                    c = await check_source(src)
+                    checks.append(c)
+                confirmed = sum(1 for c in checks if c["live"] and c["found"])
+                results.append({"fact": f["fact"], "status": "VERIFIED" if confirmed >= 2 else "SINGLE"})
+            return {"results": results, "timestamp": datetime.now().isoformat()}
+        return asyncio.run(_run())
+
+    def _strategy(self):
+        from imbrokeasfuck.earn.strategy import STRATEGY
+        return {k: {"allocation": f"{v.allocation_pct}%", "target": v.primary_target} for k, v in STRATEGY.items()}
 
     def log_message(self, format, *args):
-        pass  # Suppress logs
+        pass
 
 
 def main():
@@ -71,10 +120,9 @@ def main():
     p.add_argument("--port", type=int, default=8420)
     p.add_argument("--host", default="0.0.0.0")
     args = p.parse_args()
-
     os.chdir(WEB_DIR)
     with TCPServer((args.host, args.port), Handler) as httpd:
-        print(f"imbrokeasfuck hub running at http://localhost:{args.port}")
+        print(f"imbrokeasfuck hub at http://localhost:{args.port}")
         httpd.serve_forever()
 
 
