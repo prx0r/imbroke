@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-08-19T18:34:39+07:00",
+  "tests": {
+    "source_catalog": {"build": 8, "serve": 5, "intel": 2, "total": 15},
+    "oracle": {"opportunities": 54, "sources": 7},
+    "validation": {"ok": 8, "errors": 0},
+    "deadlines": {"openaire": "0 days", "hack_hydra": "0 days"},
+    "tao_price": 192.34,
+    "cli_commands": 15
+  },
+  "status": "ALL_PASS"
+}

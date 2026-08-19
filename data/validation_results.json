@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-19T17:34:15.713294",
+  "timestamp": "2026-08-19T18:34:07.241851",
   "results": [
     {
       "check": "deadline_OpenAIRE",
@@ -34,12 +34,12 @@
     {
       "check": "tao_price",
       "status": "OK",
-      "price": "$191.87"
+      "price": "$192.34"
     },
     {
       "check": "openaire_entities",
       "status": "OK",
-      "count": "386,595,849"
+      "count": "386,596,249"
     },
     {
       "check": "fear_greed",
