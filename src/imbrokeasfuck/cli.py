@@ -10,6 +10,7 @@ from .oracle.github_signals import scan_all_github_signals
 from .oracle.bittensor_economics import format_all_economics, format_economics, SUBNET_CONTRACTS
 from .earn.factory import FACTORY_REGISTRY, FactoryState
 from .earn.revenue import RECOMMENDED_CHANNELS
+from .earn.strategy import format_strategy, strategy_dict
 
 
 def main():
@@ -28,6 +29,7 @@ def main():
     p.add_argument("--factories", action="store_true", help="Show all factory statuses")
     p.add_argument("--superteam", action="store_true", help="Check Superteam agent API")
     p.add_argument("--revenue", action="store_true", help="Show serve-to-earn revenue channels")
+    p.add_argument("--strategy", action="store_true", help="Show 60/25/15 strategy")
     args = p.parse_args()
 
     if args.oracle:
@@ -138,6 +140,11 @@ def main():
         print(f"  Total estimated: ${total_rev:.2f}/mo revenue, ${total_cost:.2f}/mo cost")
         print(f"  Net: ${total_rev - total_cost:.2f}/mo")
         print(f"{'='*60}")
+    elif args.strategy:
+        if args.json:
+            print(json.dumps(strategy_dict(), indent=2, default=str))
+        else:
+            print(format_strategy())
     elif args.bittensor:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:
