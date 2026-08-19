@@ -129,3 +129,46 @@ def format_hackathons() -> str:
 
 def hackathon_dict() -> dict[str, Any]:
     return {k: v.to_dict() for k, v in HACKATHONS.items()}
+
+# Add additional hackathons found
+HACKATHONS["0g_wavehack"] = HackathonTarget(
+    name="0G WaveHack Buildathon",
+    organizer="0G",
+    deadline="2026-09-15",
+    prize_pool="$50,000 grant",
+    url="https://0g.ai",
+    categories=["AI infrastructure", "decentralized compute", "agent tooling"],
+    submission_name="0G Compute Adapter for Dell",
+    submission_description="Integrate 0G Compute into Dell's decentralized compute observatory.",
+    reuse_percentage=0.60,
+    existing_projects_allowed=True,
+    prior_art_policy="ALLOWED",
+)
+
+HACKATHONS["lukso"] = HackathonTarget(
+    name="LUKSO Final Hackathon",
+    organizer="LUKSO",
+    deadline="2026-09-30",
+    prize_pool="$150,000",
+    url="https://luksо.com",
+    categories=["gasless accounts", "programmable accounts", "web3 tooling"],
+    submission_name="TBD — evaluate fit",
+    submission_description="LUKSO's final hackathon round for gasless programmable accounts.",
+    reuse_percentage=0.30,
+    existing_projects_allowed=True,
+    prior_art_policy="ALLOWED",
+)
+
+HACKATHONS["cronos_x402"] = HackathonTarget(
+    name="Cronos x402 PayTech Hackathon",
+    organizer="Cronos",
+    deadline="2026-09-15",
+    prize_pool="TBD",
+    url="https://cronos.org",
+    categories=["x402 payments", "agent payments", "AI infrastructure"],
+    submission_name="x402 Payment Adapter",
+    submission_description="Can AI agents pay each other? Build x402 payment infrastructure.",
+    reuse_percentage=0.50,
+    existing_projects_allowed=True,
+    prior_art_policy="ALLOWED",
+)
