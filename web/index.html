@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>imbrokeasfuck — Crypto AI Hub</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#e0e0e0;background:#0a0a0f;font-size:13px}
+*{box-sizing:border-box}body{margin:0;overflow:hidden;display:grid;grid-template-rows:42px 1fr 24px;height:100vh}
+header{background:#111118;border-bottom:1px solid #222;display:flex;align-items:center;padding:0 12px;gap:12px}
+header h1{margin:0;font-size:15px;letter-spacing:.1em;color:#ff6b6b}
+header .price{color:#4ecdc4;font-weight:bold}
+nav{display:flex;gap:2px}
+nav button{background:none;border:0;color:#666;padding:6px 10px;cursor:pointer;font-size:12px}
+nav button.on{color:#fff;background:#1a1a2e}
+.layout{display:grid;grid-template-columns:220px 1fr;overflow:hidden}
+aside{background:#111118;border-right:1px solid #222;overflow-y:auto;padding:8px}
+section{overflow-y:auto;padding:12px}
+footer{background:#111118;border-top:1px solid #222;display:flex;align-items:center;padding:0 12px;font-size:11px;color:#555;justify-content:space-between}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#7d8795;margin:14px 0 7px}
+h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#555;margin:10px 0 5px}
+.card{border:1px solid #222;background:#111;border-radius:6px;padding:8px;margin-bottom:6px}
+.card .title{font-weight:bold;margin-bottom:4px}
+.card .meta{font-size:11px;color:#888}
+.card .value{font-size:18px;font-weight:bold}
+.badge{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;border:1px solid #333}
+.badge.green{color:#4ecdc4;border-color:#4ecdc4}.badge.red{color:#ff6b6b;border-color:#ff6b6b}.badge.yellow{color:#ffd93d;border-color:#ffd93d}
+.badge.blue{color:#74b9ff;border-color:#74b9ff}.badge.purple{color:#a29bfe;border-color:#a29bfe}
+.rank{font-size:20px;font-weight:bold;color:#ff6b6b;float:right}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:#666;font-size:10px;text-transform:uppercase;padding:4px 8px;border-bottom:1px solid #222}
+td{padding:4px 8px;border-bottom:1px solid #1a1a22}
+tr:hover{background:#1a1a2e}
+.fg-bar{height:20px;border-radius:3px;overflow:hidden;position:relative;margin:4px 0}
+.fg-fill{height:100%;border-radius:3px;transition:width .5s}
+.fg-label{position:absolute;right:8px;top:2px;font-size:11px;font-weight:bold}
+.sidebar-item{padding:6px 8px;border-radius:4px;cursor:pointer;color:#aaa;font-size:12px}
+.sidebar-item:hover{background:#1a1a2e;color:#fff}
+.sidebar-item.active{background:#1a1a2e;color:#fff;border-left:2px solid #ff6b6b}
+#loading{text-align:center;padding:40px;color:#666}
+</style>
+</head>
+<body>
+<header>
+  <h1>IMBROKEASFK</h1>
+  <span class="price" id="tao-price">TAO: —</span>
+  <nav id="tabs"></nav>
+  <span style="flex:1"></span>
+  <span id="fear-greed" style="font-size:12px"></span>
+</header>
+<div class="layout">
+  <aside id="sidebar"></aside>
+  <section id="main"><div id="loading">Loading data...</div></section>
+</div>
+<footer>
+  <span>imbrokeasfuck v0.1.0</span>
+  <span>DefiLlama · CoinGecko · Alternative.me · Bittensor</span>
+</footer>
+
+<script>
+const TABS=['Overview','Bittensor','Grants','Bounties','Projects','Opportunities'];
+let currentTab='Overview';
+let data={};
+
+async function fetchJSON(url){
+  try{const r=await fetch(url);return await r.json()}catch{return null}
+}
+
+async function loadData(){
+  const [projects,opps,fg]=await Promise.all([
+    fetchJSON('/api/projects'),
+    fetchJSON('/api/opps'),
+    fetchJSON('/api/fear-greed')
+  ]);
+  data={projects:projects?.projects||{},fear_greed:fg,opps:opps||{}};
+  document.getElementById('tao-price').textContent=`TAO: $${(opps?.tao_price||0).toFixed(2)}`;
+  if(data.fear_greed?.value){
+    const fg=data.fear_greed;
+    const color=parseInt(fg.value)<40?'#ff6b6b':parseInt(fg.value)<60?'#ffd93d':'#4ecdc4';
+    document.getElementById('fear-greed').innerHTML=`<span style="color:${color}">Fear & Greed: ${fg.value} (${fg.value_classification})</span>`;
+  }
+  render();
+}
+
+function render(){
+  const main=document.getElementById('main');
+  const sidebar=document.getElementById('sidebar');
+  sidebar.innerHTML=TABS.map(t=>`<div class="sidebar-item ${currentTab===t?'active':''}" onclick="switchTab('${t}')">${t}</div>`).join('');
+  
+  if(currentTab==='Overview') renderOverview(main);
+  else if(currentTab==='Bittensor') renderBittensor(main);
+  else if(currentTab==='Grants') renderGrants(main);
+  else if(currentTab==='Bounties') renderBounties(main);
+  else if(currentTab==='Projects') renderProjects(main);
+  else if(currentTab==='Opportunities') renderOpps(main);
+}
+
+function switchTab(t){currentTab=t;render()}
+
+function renderOverview(el){
+  const projects=Object.values(data.projects||{});
+  const withPrice=projects.filter(p=>p.price);
+  const withTVL=projects.filter(p=>p.tvl);
+  const totalMCap=withPrice.reduce((s,p)=>s+(p.market_cap||0),0);
+  const totalTVL=withTVL.reduce((s,p)=>s+(p.tvl||0),0);
+  
+  el.innerHTML=`
+    <h2>Market Overview</h2>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+      <div class="card"><div class="meta">Projects Tracked</div><div class="value">${projects.length}</div></div>
+      <div class="card"><div class="meta">With Live Prices</div><div class="value">${withPrice.length}</div></div>
+      <div class="card"><div class="meta">Total Market Cap</div><div class="value">$${(totalMCap/1e6).toFixed(0)}M</div></div>
+      <div class="card"><div class="meta">Total TVL</div><div class="value">$${(totalTVL/1e9).toFixed(1)}B</div></div>
+    </div>
+    <h2>Top Movers</h2>
+    <table>
+      <tr><th>Project</th><th>Token</th><th>Price</th><th>24h</th><th>MCap</th><th>TVL</th><th>Category</th></tr>
+      ${withPrice.sort((a,b)=>(b.market_cap||0)-(a.market_cap||0)).map(p=>`
+        <tr>
+          <td><strong>${p.name}</strong></td>
+          <td>${(p.token||'').slice(0,8)}</td>
+          <td>$${p.price?.toFixed(4)||'—'}</td>
+          <td style="color:${(p.change_24h||0)>=0?'#4ecdc4':'#ff6b6b'}">${p.change_24h?p.change_24h.toFixed(1)+'%':'—'}</td>
+          <td>$${p.market_cap?(p.market_cap/1e6).toFixed(0)+'M':'—'}</td>
+          <td>$${p.tvl?(p.tvl/1e6).toFixed(0)+'M':'—'}</td>
+          <td><span class="badge blue">${p.category||'—'}</span></td>
+        </tr>`).join('')}
+    </table>
+  `;
+}
+
+function renderBittensor(el){
+  const subnets=data.opps?.subnets||{};
+  const taoPrice=data.opps?.tao_price||0;
+  const daily=data.opps?.daily_emissions||3600;
+  
+  el.innerHTML=`
+    <h2>Bittensor Subnets</h2>
+    <div class="card" style="margin-bottom:12px">
+      <div class="meta">Network Stats</div>
+      <div style="display:flex;gap:20px;margin-top:4px">
+        <span>TAO: <strong>$${taoPrice.toFixed(2)}</strong></span>
+        <span>Daily: <strong>${daily} TAO</strong> ($${(daily*taoPrice).toLocaleString()})</span>
+        <span>Halving: <strong>Dec 2025</strong></span>
+      </div>
+    </div>
+    <table>
+      <tr><th>Rank</th><th>SN</th><th>Name</th><th>Emission %</th><th>Daily TAO</th><th>Reward</th><th>GPU</th><th>QDW Fit</th><th>Terms</th></tr>
+      ${Object.entries(subnets).sort((a,b)=>(a[1].rank||99)-(b[1].rank||99)).map(([id,s])=>{
+        const dailyTAO=(s.emission_pct/100)*daily*0.41;
+        return `<tr>
+          <td><strong>#${s.rank}</strong></td>
+          <td>SN${id}</td>
+          <td><strong>${s.name}</strong></td>
+          <td>${s.emission_pct}%</td>
+          <td>${dailyTAO.toFixed(1)} ($${(dailyTAO*taoPrice).toFixed(0)})</td>
+          <td><span class="badge ${s.reward?.includes('proportional')?'green':'yellow'}">${s.reward||'—'}</span></td>
+          <td>${s.gpu_required?'<span class="badge red">GPU</span>':'<span class="badge green">No GPU</span>'}</td>
+          <td>${s.qdw_fit||'—'}</td>
+          <td style="font-size:10px;color:#888">${s.terms||'—'}</td>
+        </tr>`}).join('')}
+    </table>
+    <div class="card" style="margin-top:12px;border-color:#4ecdc4">
+      <div style="color:#4ecdc4;font-weight:bold">#1 Priority: SN118 Ditto</div>
+      <div class="meta" style="margin-top:4px">
+        Submit agent-memory harness as Docker artifact. Validators run it. No GPU needed.<br>
+        0.04 TAO (~$8) per evaluation. Top 5 miners paid (65/14/10/7/4 distribution).<br>
+        QDW already has: memory bridge, context compilation, hashed handovers.
+      </div>
+    </div>
+  `;
+}
+
+function renderGrants(el){
+  const grants=data.opps?.grants||{};
+  el.innerHTML=`
+    <h2>Grant Programs</h2>
+    <table>
+      <tr><th>Rank</th><th>Program</th><th>Amount</th><th>Status</th><th>Eligible</th></tr>
+      ${Object.values(grants).sort((a,b)=>(a.rank||99)-(b.rank||99)).map(g=>`
+        <tr>
+          <td>#${g.rank}</td>
+          <td><strong>${g.name}</strong></td>
+          <td>${g.amount}</td>
+          <td><span class="badge green">${g.status}</span></td>
+          <td style="font-size:11px">${g.eligible}</td>
+        </tr>`).join('')}
+    </table>
+    <div class="card" style="margin-top:12px;border-color:#ffd93d">
+      <div style="color:#ffd93d;font-weight:bold">Stack grants for maximum leverage</div>
+      <div class="meta" style="margin-top:4px">
+        Akash grant → development funding<br>
+        Nosana grant → development funding + GPU compute<br>
+        Heurist → inference credits<br>
+        Bittensor/Chutes → inference source<br>
+        Same open-source core → useful independent product
+      </div>
+    </div>
+  `;
+}
+
+function renderBounties(el){
+  const platforms=data.opps?.bounties||{};
+  el.innerHTML=`
+    <h2>Bounty Platforms</h2>
+    ${Object.values(platforms).sort((a,b)=>(a.rank||99)-(b.rank||99)).map(b=>`
+      <div class="card">
+        <div class="rank">#${b.rank}</div>
+        <div class="title">${b.name}</div>
+        <div class="meta">${b.description}</div>
+        ${b.current_tasks?`<div style="margin-top:6px">${b.current_tasks.map(t=>`<span class="badge yellow" style="margin:2px">${t}</span>`).join('')}</div>`:''}
+        ${b.features?`<div style="margin-top:6px;font-size:11px;color:#888">${b.features.join(' · ')}</div>`:''}
+      </div>`).join('')}
+  `;
+}
+
+function renderProjects(el){
+  const projects=Object.values(data.projects||{});
+  el.innerHTML=`
+    <h2>Tracked Projects</h2>
+    <table>
+      <tr><th>Project</th><th>Token</th><th>Price</th><th>24h</th><th>MCap</th><th>TVL</th><th>Category</th></tr>
+      ${projects.sort((a,b)=>(b.tvl||0)-(a.tvl||0)).map(p=>`
+        <tr>
+          <td><strong>${p.name}</strong></td>
+          <td>${(p.token||'').slice(0,10)}</td>
+          <td>${p.price?'$'+p.price.toFixed(4):'—'}</td>
+          <td style="color:${(p.change_24h||0)>=0?'#4ecdc4':'#ff6b6b'}">${p.change_24h?p.change_24h.toFixed(1)+'%':'—'}</td>
+          <td>$${p.market_cap?(p.market_cap/1e6).toFixed(0)+'M':'—'}</td>
+          <td>$${p.tvl?(p.tvl/1e6).toFixed(0)+'M':'—'}</td>
+          <td><span class="badge blue">${p.category||'—'}</span></td>
+        </tr>`).join('')}
+    </table>
+  `;
+}
+
+function renderOpps(el){
+  el.innerHTML=`
+    <h2>Strategy</h2>
+    <div class="card" style="border-color:#4ecdc4">
+      <div style="color:#4ecdc4;font-weight:bold">QDW Earn Pipeline</div>
+      <pre style="font-size:11px;color:#aaa;margin:8px 0;white-space:pre-wrap">GitGoblin → opportunity radar → OpportunitySpec
+  → expected-value / reuse score → QDW Ideas
+  → variants / cemetery / variants → factory
+  → evaluator → product → human gate → submission → $$$</pre>
+      <div class="meta">Key metric: expected payout × probability / (cash cost + QDW engineering hours)</div>
+    </div>
+    <h2>Priority Order</h2>
+    <table>
+      <tr><th>#</th><th>Target</th><th>Cost</th><th>GPU</th><th>Reward</th></tr>
+      <tr><td>1</td><td><strong>SN118 Ditto</strong></td><td>0.04 TAO/eval</td><td>No</td><td>Top 5 paid</td></tr>
+      <tr><td>2</td><td><strong>Superteam Earn</strong></td><td>Zero</td><td>No</td><td>$1K–$5K bounties</td></tr>
+      <tr><td>3</td><td><strong>Tether.dev</strong></td><td>Zero</td><td>No</td><td>$1.5K–$5K/task</td></tr>
+      <tr><td>4</td><td><strong>SN11 TrajectoryRL</strong></td><td>0.44 TAO/submission</td><td>No</td><td>Winner-takes-all</td></tr>
+      <tr><td>5</td><td><strong>SN62 Ridges</strong></td><td>Low</td><td>No</td><td>Winner-takes-all</td></tr>
+      <tr><td>6</td><td><strong>SN61 RedTeam</strong></td><td>Cheap VPS</td><td>8GB</td><td>Proportional</td></tr>
+    </table>
+    <div class="card" style="margin-top:12px;border-color:#ff6b6b">
+      <div style="color:#ff6b6b;font-weight:bold">⚠ Don't rent a GPU yet</div>
+      <div class="meta" style="margin-top:4px">None of top 4 targets requires one. Only rent compute when a local benchmark demonstrably benefits from it.</div>
+    </div>
+  `;
+}
+
+loadData();
+setInterval(loadData,300000);
+</script>
+</body>
+</html>
