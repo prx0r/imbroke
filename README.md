@@ -1,63 +1,72 @@
-# imbrokeasfuck
+# imbrokeasfuck — What We Actually Have
 
-Crypto AI project tracker — Bittensor subnets, Virtuals, Akash, Venice, and 20+ protocols.
+## The system
 
-## What it tracks
-
-| Category | Projects |
-|----------|----------|
-| **Decentralized Inference** | Chutes (SN64), Venice, FLock, 0G |
-| **Compute Markets** | Akash, Nosana, io.net, Aethir |
-| **Agent Economy** | Virtuals/ACP, Olas/Mech |
-| **Verification** | EigenCloud, Phala (TEE), Lit Protocol |
-| **Data/Provenance** | OpenLedger, Vana, Sahara AI |
-| **Storage + Persistent Compute** | Arweave/AO |
-| **Payments** | x402/PayAI |
-
-## Data sources
-
-- **DefiLlama** — TVL, fees, revenue, protocol metrics (free, no key)
-- **CoinGecko** — prices, market cap, 24h change (free tier)
-- **Fear & Greed Index** — Alternative.me (free)
-- **Bittensor** — subnet registry via btcli/SDK (on-chain)
-- **CoinMarketCap** — via x402 micropayments (optional)
-
-## Quick start
-
-```bash
-cd imbrokeasfuck
-python3 -m pip install -e .
-
-# Full report
-ibf
-
-# JSON output
-ibf --json
-
-# Single project
-ibf --project chutes
-ibf --project venice
-ibf --project virtuals
-```
-
-## Without install
-
-```bash
-cd imbrokeasfuck
-PYTHONPATH=src python3 -m imbrokeasfuck.cli
-```
-
-## Available MCP servers
-
-| Server | Install |
-|--------|---------|
-| CoinGecko | `npx -y @coingecko/coingecko-mcp` or remote `https://mcp.api.coingecko.com/mcp` |
-| Venice | `npx -y @veniceai/mcp-server` |
-| x402 wrapper | `@x402/mcp` — wraps any MCP tool with payment |
-
-## Project slugs
+**imbrokeasfuck** is a crypto AI opportunity tracker + economic factory system.
 
 ```
-chutes virtuals olas akash venice 0g eigen phala lit aethir
-nosana ionet openledger flock vana sahara arweave
+15 sources → Oracle → Deadline Tracker → Priority Ranker
+     ↓
+  61+ opportunities
+     ↓
+  ranked by: urgency × value × reuse
+     ↓
+  what to work on RIGHT NOW
+```
+
+## What works (tested)
+
+| Component | Commands | Status |
+|-----------|----------|--------|
+| Oracle (15 sources) | `ibf --oracle` | ✅ 61 opportunities |
+| Deadline tracker | `ibf --expiring 7` | ✅ |
+| Priority ranker | `ibf --prioritize` | ✅ |
+| Validation | `ibf --validate` | ✅ 8/9 checks pass |
+| Bittensor economics | `ibf --economics` | ✅ |
+| Factories (4) | `ibf --factory 118` | ✅ MAP-Elites |
+| Revenue channels | `ibf --revenue` | ✅ 5 channels |
+| Hackathons | `ibf --hackathons` | ✅ 7 targets |
+| Strategy | `ibf --strategy` | ✅ 60/25/15 |
+| Web dashboard | localhost:8420 | ✅ |
+| Hermes | mimo-v2.5 via opencode-go | ✅ |
+
+## What's stale (should delete)
+
+| Path | Why |
+|------|-----|
+| `hydrabite/` | Replaced by submission ZIP |
+| `hydraroute/` | Replaced by HydraBite |
+| `patala_research_ci/` | Replaced by submission ZIP |
+| `proposals/` | Superseded by focused strategy |
+
+## What's reference only (keep but don't build on)
+
+| Path | What |
+|------|------|
+| `vendor/wiggly/` | Evidence-state machine |
+| `vendor/hydradb/` | Graph database |
+| `vendor/ditto-subnet/` | Bittensor competition |
+| `vendor/dfresearch/` | Autonomous research loop |
+| `vendor/chainwake/` | Event-driven watcher |
+| `vendor/text-fabric/` | Scholarly text annotation |
+
+## File structure
+
+```
+imbrokeasfuck/
+├── src/imbrokeasfuck/          # Core system (43 Python files)
+│   ├── apis.py                # CoinGecko, DefiLlama, Fear/Greed
+│   ├── bittensor.py           # Subnet economics
+│   ├── tracker.py             # 17 project tracking
+│   ├── oracle/                # 15 sources, 61+ opportunities
+│   ├── earn/                  # Factories, evolution, revenue
+│   ├── cli.py                 # 15+ commands
+│   ├── server.py              # Web dashboard
+│   └── validator.py           # Dell-style validation
+├── hackathons/                # Hackathon plans
+│   ├── openaire/             # OpenAIRE submission
+│   └── hydra/                # Hack Hydra submission
+├── data/                      # Validation results, feeds
+├── vendor/                    # 35 reference repos
+└── web/                       # Dashboard UI
 ```
