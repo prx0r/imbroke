@@ -9,6 +9,7 @@ from .oracle import ingest_all
 from .oracle.github_signals import scan_all_github_signals
 from .oracle.bittensor_economics import format_all_economics, format_economics, SUBNET_CONTRACTS
 from .earn.factory import FACTORY_REGISTRY, FactoryState
+from .earn.revenue import RECOMMENDED_CHANNELS
 
 
 def main():
@@ -26,6 +27,7 @@ def main():
     p.add_argument("--factory", type=int, help="Run factory for subnet (e.g. --factory 118)")
     p.add_argument("--factories", action="store_true", help="Show all factory statuses")
     p.add_argument("--superteam", action="store_true", help="Check Superteam agent API")
+    p.add_argument("--revenue", action="store_true", help="Show serve-to-earn revenue channels")
     args = p.parse_args()
 
     if args.oracle:
@@ -119,6 +121,23 @@ def main():
             print(f"  Opportunities: {len(listings)}")
             for opp in listings[:5]:
                 print(f"    [{opp.rating}] {opp.kind:<10} fit={opp.reuse_score:.0%}  {opp.title[:50]}")
+    elif args.revenue:
+        print(f"\n{'='*60}")
+        print(f"  SERVE-TO-EARN REVENUE CHANNELS")
+        print(f"{'='*60}\n")
+        for ch in RECOMMENDED_CHANNELS:
+            print(f"  {ch.name}")
+            print(f"    Platform: {ch.platform} | Model: {ch.pricing_model}")
+            print(f"    Price: ${ch.price_per_call_usd}/call | Est: {ch.estimated_monthly_calls} calls/mo")
+            print(f"    Revenue: ${ch.estimated_monthly_revenue_usd}/mo | Cost: ${ch.infrastructure_cost_usd}/mo")
+            print(f"    Net: ${ch.net_monthly_revenue():.2f}/mo | ROI: {ch.roi():.1f}x")
+            print()
+        total_rev = sum(ch.estimated_monthly_revenue_usd for ch in RECOMMENDED_CHANNELS)
+        total_cost = sum(ch.infrastructure_cost_usd for ch in RECOMMENDED_CHANNELS)
+        print(f"  {'='*50}")
+        print(f"  Total estimated: ${total_rev:.2f}/mo revenue, ${total_cost:.2f}/mo cost")
+        print(f"  Net: ${total_rev - total_cost:.2f}/mo")
+        print(f"{'='*60}")
     elif args.bittensor:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:

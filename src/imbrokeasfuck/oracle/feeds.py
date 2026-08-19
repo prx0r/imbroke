@@ -9,6 +9,14 @@ from .opportunity import (
 )
 from .github_signals import scan_all_github_signals, signal_to_opportunity
 from .bittensor_economics import SUBNET_CONTRACTS
+from .sources.algora import fetch_algora_bounties
+from .sources.x402 import discover_x402_services
+from .sources.tether import fetch_tether_bounties
+from .sources.near import fetch_near_funding
+from .sources.apify import discover_apify_actors
+from .sources.virtuals import discover_virtuals_services
+from .sources.heurist import discover_heurist_services
+from .sources.olas import discover_olas_mechs
 
 TIMEOUT = httpx.Timeout(15.0)
 
@@ -171,6 +179,14 @@ async def ingest_all(tao_price: float = 190.0) -> dict[str, Any]:
         fetch_ethglobal_events(),
         fetch_bittensor_subnets(tao_price),
         scan_all_github_signals(),
+        fetch_algora_bounties(),
+        discover_x402_services(),
+        fetch_tether_bounties(),
+        fetch_near_funding(),
+        discover_apify_actors(),
+        discover_virtuals_services(),
+        discover_heurist_services(),
+        discover_olas_mechs(),
     ]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)

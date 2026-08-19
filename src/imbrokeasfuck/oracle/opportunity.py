@@ -9,7 +9,7 @@ import json
 
 @dataclass
 class Opportunity:
-    kind: str  # hackathon|bounty|grant|subnet|builder_program|testnet|rfp
+    kind: str  # hackathon|bounty|grant|subnet|builder_program|testnet|rfp|service|deliverable
     title: str
     sponsor: str
     discovered_at: str
@@ -28,9 +28,14 @@ class Opportunity:
 
     # Constraints
     eligibility: list[str] = field(default_factory=list)
+    eligibility_status: str = "UNKNOWN"  # ELIGIBLE|BLOCKED|UNKNOWN
     ip_assignment: Optional[str] = None
     submission_fee: Optional[str] = None
     hardware: Optional[str] = None
+    prior_art_policy: str = ""  # EXCLUDE_SAME_COMPETITION_SUBMISSIONS|ALLOWED|UNKNOWN
+    age_min: Optional[int] = None
+    kyc_required: bool = False
+    human_required: bool = False
 
     # QDW fit
     reuse_score: float = 0.0
