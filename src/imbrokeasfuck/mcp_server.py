@@ -47,10 +47,10 @@ def _validate_opportunity(opp_id: str) -> dict:
     from .canonical_db import connect
     conn = connect()
     row = conn.execute("SELECT * FROM opportunities WHERE opportunity_id=?", (opp_id,)).fetchone()
+    cols = [d[0] for d in conn.execute("SELECT * FROM opportunities LIMIT 0").description]
     conn.close()
     if not row:
         return {"error": "not found"}
-    cols = [d[0] for d in conn.execute("SELECT * FROM opportunities LIMIT 0").description]
     return dict(zip(cols, row))
 
 def _get_stats() -> dict:
