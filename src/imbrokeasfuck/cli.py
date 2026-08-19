@@ -7,6 +7,7 @@ from .tracker import fetch_all, format_report
 from .bittensor import fetch_bittensor_data, format_opportunities
 from .oracle import ingest_all
 from .oracle.github_signals import scan_all_github_signals
+from .oracle.bittensor_economics import format_all_economics, format_economics, SUBNET_CONTRACTS
 
 
 def main():
@@ -19,6 +20,8 @@ def main():
     p.add_argument("--bittensor", action="store_true", help="Show Bittensor subnet data")
     p.add_argument("--tao", action="store_true", help="Show TAO price only")
     p.add_argument("--github", action="store_true", help="Scan GitHub for early signals")
+    p.add_argument("--economics", action="store_true", help="Show miner economics calculations")
+    p.add_argument("--contract", type=int, help="Show contract details for subnet (e.g. --contract 118)")
     args = p.parse_args()
 
     if args.oracle:
@@ -54,6 +57,22 @@ def main():
             print(json.dumps(data, indent=2, default=str))
         else:
             print(format_opportunities(data))
+    elif args.economics:
+        if args.json:
+            data = {str(k): v.to_dict() for k, v in SUBNET_CONTRACTS.items()}
+            print(json.dumps(data, indent=2, default=str))
+        else:
+            print(format_all_economics())
+    elif args.contract:
+        contract = SUBNET_CONTRACTS.get(args.contract)
+        if contract:
+            if args.json:
+                print(json.dumps(contract.to_dict(), indent=2, default=str))
+            else:
+                print(format_economics(contract))
+        else:
+            print(f"Unknown subnet: {args.contract}")
+            print(f"Available: {', '.join(str(k) for k in sorted(SUBNET_CONTRACTS.keys()))}")
     elif args.bittensor:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:

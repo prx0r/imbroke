@@ -2,7 +2,7 @@
 from .opportunity import Opportunity
 from .feeds import ingest_all
 from .github_signals import scan_all_github_signals
-from .bittensor_economics import fetch_subnet_economics, SUBNET_ECONOMICS
+from .bittensor_economics import SUBNET_CONTRACTS, format_all_economics, format_economics, MinerContract
 
 __all__ = [
     "Opportunity",

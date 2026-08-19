@@ -8,7 +8,7 @@ from .opportunity import (
     classify_reward, estimate_qdw_fit,
 )
 from .github_signals import scan_all_github_signals, signal_to_opportunity
-from .bittensor_economics import fetch_subnet_economics
+from .bittensor_economics import SUBNET_CONTRACTS
 
 TIMEOUT = httpx.Timeout(15.0)
 
@@ -129,8 +129,37 @@ async def fetch_ethglobal_events() -> list[Opportunity]:
 
 
 async def fetch_bittensor_subnets(tao_price: float) -> list[Opportunity]:
-    """Fetch Bittensor subnet data."""
-    return await fetch_subnet_economics(tao_price)
+    """Convert known subnet contracts to Opportunities."""
+    opps = []
+    for netuid, contract in SUBNET_CONTRACTS.items():
+        opps.append(Opportunity(
+            kind="subnet",
+            title=f"SN{netuid} {contract.name}: {contract.artifact_type}",
+            sponsor=contract.name,
+            discovered_at="",
+            reward_type="token_emission",
+            amount_min_usd=contract.submission_cost_tao * tao_price * -1 if contract.submission_cost_tao else 0,
+            amount_max_usd=contract.miner_pool_tao_day * tao_price,
+            reward_confidence=0.7 if contract.miner_pool_tao_day else 0.3,
+            artifact_type=contract.artifact_type,
+            hardware=f"{contract.ram_gb}GB RAM" if contract.ram_gb else None,
+            ip_assignment=contract.submission_ip_terms,
+            submission_fee=f"{contract.submission_cost_tao} TAO" if contract.submission_cost_tao else None,
+            reuse_score=contract.qdw_reuse_score,
+            estimated_engineering_hours=20 if contract.qdw_reuse_score > 0.8 else 40,
+            local_evaluator_available=contract.evaluator_local_reproducible,
+            factory_candidate=contract.name.lower(),
+            existing_assets=contract.qdw_existing_assets,
+            cash_at_risk=contract.submission_cost_tao * tao_price,
+            expected_value_confidence="MEDIUM" if contract.miner_pool_tao_day else "LOW",
+            paying_slots=contract.paying_slots,
+            source="bittensor_research",
+            source_url=contract.github,
+            source_data=contract.to_dict(),
+            rating="A" if contract.qdw_reuse_score > 0.85 else "B" if contract.qdw_reuse_score > 0.6 else "C",
+            recommendation=contract.recommendation,
+        ))
+    return opps
 
 
 async def ingest_all(tao_price: float = 190.0) -> dict[str, Any]:
