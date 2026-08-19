@@ -1,0 +1,15 @@
+[Unit]
+Description=QDW Opportunity Validator
+After=network.target
+
+[Service]
+Type=simple
+User=box
+WorkingDirectory=/home/box/imbrokeasfuck
+Environment=PYTHONPATH=/home/box/imbrokeasfuck/src
+ExecStart=/usr/bin/python3 -m imbrokeasfuck.oracle.three_pass
+Restart=on-failure
+RestartSec=86400
+
+[Install]
+WantedBy=multi-user.target

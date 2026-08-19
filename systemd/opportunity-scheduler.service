@@ -1,0 +1,15 @@
+[Unit]
+Description=QDW Opportunity Scheduler
+After=network.target
+
+[Service]
+Type=simple
+User=box
+WorkingDirectory=/home/box/imbrokeasfuck
+Environment=PYTHONPATH=/home/box/imbrokeasfuck/src
+ExecStart=/usr/bin/python3 -m imbrokeasfuck.discovery
+Restart=on-failure
+RestartSec=3600
+
+[Install]
+WantedBy=multi-user.target
