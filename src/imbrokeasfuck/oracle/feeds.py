@@ -21,6 +21,9 @@ from .sources.hackathons_space import fetch_hackathons_space
 from .sources.defai_hackathons import fetch_defai_hackathons
 from .sources.grants import fetch_grants
 from .sources.bug_bounties import fetch_bug_bounties
+from .sources.hackathon_platforms import fetch_hackathon_platforms
+from .sources.forums import fetch_forums
+from .sources.defai_protocols import fetch_defai_protocols
 from .deadline import prioritize_by_deadline, get_expiring_soon
 
 TIMEOUT = httpx.Timeout(15.0)
@@ -196,6 +199,9 @@ async def ingest_all(tao_price: float = 190.0) -> dict[str, Any]:
         fetch_defai_hackathons(),
         fetch_grants(),
         fetch_bug_bounties(),
+        fetch_hackathon_platforms(),
+        fetch_forums(),
+        fetch_defai_protocols(),
     ]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
