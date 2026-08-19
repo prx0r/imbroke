@@ -1,72 +1,95 @@
-# imbrokeasfuck — What We Actually Have
+# imbrokeasfuck
 
-## The system
+Crypto AI opportunity tracker + economic factory system.
 
-**imbrokeasfuck** is a crypto AI opportunity tracker + economic factory system.
+## What it does
 
 ```
-15 sources → Oracle → Deadline Tracker → Priority Ranker
+15 sources → Oracle → Validation → Deadline → Priority
      ↓
-  61+ opportunities
+  23 opportunities (DB-backed)
      ↓
-  ranked by: urgency × value × reuse
+  MCP exposure for Dell/agents
      ↓
-  what to work on RIGHT NOW
+  Autonomous orchestration
 ```
 
-## What works (tested)
+## Quick start
 
-| Component | Commands | Status |
-|-----------|----------|--------|
-| Oracle (15 sources) | `ibf --oracle` | ✅ 61 opportunities |
-| Deadline tracker | `ibf --expiring 7` | ✅ |
-| Priority ranker | `ibf --prioritize` | ✅ |
-| Validation | `ibf --validate` | ✅ 8/9 checks pass |
-| Bittensor economics | `ibf --economics` | ✅ |
-| Factories (4) | `ibf --factory 118` | ✅ MAP-Elites |
-| Revenue channels | `ibf --revenue` | ✅ 5 channels |
-| Hackathons | `ibf --hackathons` | ✅ 7 targets |
-| Strategy | `ibf --strategy` | ✅ 60/25/15 |
-| Web dashboard | localhost:8420 | ✅ |
-| Hermes | mimo-v2.5 via opencode-go | ✅ |
+```bash
+cd imbrokeasfuck
+pip install -e .
 
-## What's stale (should delete)
+# Run orchestrator
+PYTHONPATH=src python3 -m imbrokeasfuck.orchestrator
 
-| Path | Why |
-|------|-----|
-| `hydrabite/` | Replaced by submission ZIP |
-| `hydraroute/` | Replaced by HydraBite |
-| `patala_research_ci/` | Replaced by submission ZIP |
-| `proposals/` | Superseded by focused strategy |
+# Run validation
+PYTHONPATH=src python3 -m imbrokeasfuck.oracle.three_pass
 
-## What's reference only (keep but don't build on)
+# Start MCP server
+PYTHONPATH=src python3 -m imbrokeasfuck.mcp_server
 
-| Path | What |
-|------|------|
-| `vendor/wiggly/` | Evidence-state machine |
-| `vendor/hydradb/` | Graph database |
-| `vendor/ditto-subnet/` | Bittensor competition |
-| `vendor/dfresearch/` | Autonomous research loop |
-| `vendor/chainwake/` | Event-driven watcher |
-| `vendor/text-fabric/` | Scholarly text annotation |
+# CLI
+PYTHONPATH=src python3 -m imbrokeasfuck.cli --oracle
+PYTHONPATH=src python3 -m imbrokeasfuck.cli --validate
+PYTHONPATH=src python3 -m imbrokeasfuck.cli --strategy
+```
 
-## File structure
+## Architecture
 
 ```
-imbrokeasfuck/
-├── src/imbrokeasfuck/          # Core system (43 Python files)
-│   ├── apis.py                # CoinGecko, DefiLlama, Fear/Greed
-│   ├── bittensor.py           # Subnet economics
-│   ├── tracker.py             # 17 project tracking
-│   ├── oracle/                # 15 sources, 61+ opportunities
-│   ├── earn/                  # Factories, evolution, revenue
-│   ├── cli.py                 # 15+ commands
-│   ├── server.py              # Web dashboard
-│   └── validator.py           # Dell-style validation
-├── hackathons/                # Hackathon plans
-│   ├── openaire/             # OpenAIRE submission
-│   └── hydra/                # Hack Hydra submission
-├── data/                      # Validation results, feeds
-├── vendor/                    # 35 reference repos
-└── web/                       # Dashboard UI
+src/imbrokeasfuck/
+├── apis.py              # CoinGecko, DefiLlama, Fear/Greed
+├── bittensor.py         # Subnet economics
+├── cli.py               # 15+ commands
+├── canonical_db.py      # SQLite store
+├── discovery.py         # Autonomous pipeline
+├── orchestrator.py      # Reads DB, identifies work
+├── mcp_server.py        # 3 MCP tools
+├── server.py            # 14 API endpoints
+├── merkle.py            # Data integrity proofs
+├── verifier.py          # Verification ladder
+├── scoring.py           # Opportunity scoring
+├── expiry.py            # Deadline tracking
+├── tracker.py           # 17 project tracking
+├── oracle/              # 15 sources, 54+ opportunities
+│   ├── sources/         # 15 adapters
+│   ├── feeds.py         # Ingestion
+│   └── three_pass.py    # Validation
+└── earn/                # Factories, evolution, revenue
+    ├── factory.py       # MAP-Elites
+    ├── genome.py        # Candidates
+    ├── revenue.py       # Serve-to-earn
+    └── strategy.py      # 60/25/15
 ```
+
+## API Endpoints
+
+```
+GET /api/v1/models          # project registry
+GET /api/v1/opportunities   # oracle feed
+GET /api/v1/hackathons      # 7 targets
+GET /api/v1/subnets         # 8 Bittensor subnets
+GET /api/v1/economics       # miner math
+GET /api/v1/deals           # tracked opportunities
+GET /api/v1/prices          # token prices
+GET /api/v1/fear-greed      # market sentiment
+GET /api/v1/stats           # system stats
+GET /api/v1/validate        # 3-pass validation
+GET /api/v1/strategy        # 60/25/15
+```
+
+## MCP Tools
+
+```
+qdw_opportunities — list all tracked opportunities
+qdw_validate — verify against multiple sources
+qdw_stats — system statistics
+```
+
+## What's next
+
+1. Real polling (not just seed data)
+2. Blog monitoring for new opportunities
+3. Make MCP tools do real verification
+4. Autonomous Hermes execution
