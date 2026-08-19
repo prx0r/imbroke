@@ -13,6 +13,7 @@ from .earn.revenue import RECOMMENDED_CHANNELS
 from .earn.strategy import format_strategy, strategy_dict
 from .earn.hackathons import format_hackathons, hackathon_dict
 from .earn.wiggly import format_wiggly_reuse
+from .earn.prioritizer import format_priorities
 
 
 def main():
@@ -34,6 +35,7 @@ def main():
     p.add_argument("--strategy", action="store_true", help="Show 60/25/15 strategy")
     p.add_argument("--hackathons", action="store_true", help="Show hackathon targets")
     p.add_argument("--wiggly", type=str, help="Show Wiggly reuse for hackathon (e.g. --wiggly telegraph)")
+    p.add_argument("--prioritize", action="store_true", help="Show what to work on right now")
     args = p.parse_args()
 
     if args.oracle:
@@ -156,6 +158,8 @@ def main():
             print(format_hackathons())
     elif args.wiggly:
         print(format_wiggly_reuse(args.wiggly))
+    elif args.prioritize:
+        print(format_priorities())
     elif args.bittensor:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:
