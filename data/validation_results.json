@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-08-19T17:34:15.713294",
+  "results": [
+    {
+      "check": "deadline_OpenAIRE",
+      "status": "OK",
+      "days_remaining": 1
+    },
+    {
+      "check": "deadline_Hack Hydra",
+      "status": "OK",
+      "days_remaining": 1
+    },
+    {
+      "check": "url_OpenAIRE",
+      "status": "OK",
+      "url": "https://innovation.openaire.eu/component/content/article/openaire-ai-hackathon.html"
+    },
+    {
+      "check": "url_Hack Hydra",
+      "status": "OK",
+      "url": "https://www.hackathons.space/hackathons/hack-hydra-the-hydradb-open-source-hackathon"
+    },
+    {
+      "check": "url_Ditto",
+      "status": "HTTP_403",
+      "url": "https://bittensor.ai/subnets/118"
+    },
+    {
+      "check": "url_HydraDB",
+      "status": "OK",
+      "url": "https://hydradb.com"
+    },
+    {
+      "check": "tao_price",
+      "status": "OK",
+      "price": "$191.87"
+    },
+    {
+      "check": "openaire_entities",
+      "status": "OK",
+      "count": "386,595,849"
+    },
+    {
+      "check": "fear_greed",
+      "status": "OK",
+      "value": "46",
+      "classification": "Fear"
+    }
+  ]
+}
