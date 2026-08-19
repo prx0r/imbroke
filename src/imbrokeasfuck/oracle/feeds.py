@@ -17,6 +17,7 @@ from .sources.apify import discover_apify_actors
 from .sources.virtuals import discover_virtuals_services
 from .sources.heurist import discover_heurist_services
 from .sources.olas import discover_olas_mechs
+from .sources.hackathons_space import fetch_hackathons_space
 
 TIMEOUT = httpx.Timeout(15.0)
 
@@ -187,6 +188,7 @@ async def ingest_all(tao_price: float = 190.0) -> dict[str, Any]:
         discover_virtuals_services(),
         discover_heurist_services(),
         discover_olas_mechs(),
+        fetch_hackathons_space(),
     ]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
