@@ -28,6 +28,7 @@ async def fetch_algora_bounties() -> list[Opportunity]:
                             kind="bounty",
                             title=f"{repo.get('full_name', '')}: {title}"[:100],
                             sponsor=repo.get("owner", ""),
+            discovered_at="",
                             deadline=b.get("deadline"),
                             reward_type="cash",
                             amount_max_usd=float(reward) if reward else None,

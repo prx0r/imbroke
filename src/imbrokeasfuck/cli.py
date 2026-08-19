@@ -13,6 +13,7 @@ from .earn.revenue import RECOMMENDED_CHANNELS
 from .earn.strategy import format_strategy, strategy_dict
 from .earn.hackathons import format_hackathons, hackathon_dict
 from .earn.wiggly import format_wiggly_reuse
+from .oracle.deadline import prioritize_by_deadline, get_expiring_soon
 from .earn.prioritizer import format_priorities
 
 
@@ -36,6 +37,7 @@ def main():
     p.add_argument("--hackathons", action="store_true", help="Show hackathon targets")
     p.add_argument("--wiggly", type=str, help="Show Wiggly reuse for hackathon (e.g. --wiggly telegraph)")
     p.add_argument("--prioritize", action="store_true", help="Show what to work on right now")
+    p.add_argument("--expiring", type=int, help="Show opportunities expiring within N days")
     args = p.parse_args()
 
     if args.oracle:
@@ -160,6 +162,22 @@ def main():
         print(format_wiggly_reuse(args.wiggly))
     elif args.prioritize:
         print(format_priorities())
+    elif args.expiring is not None:
+        from .earn.prioritizer import WORK_ITEMS
+        from datetime import datetime
+        days = args.expiring
+        print(f"\n{'='*60}")
+        print(f"  EXPIRING WITHIN {days} DAYS")
+        print(f"{'='*60}\n")
+        expiring = [w for w in WORK_ITEMS if w.deadline and (datetime.fromisoformat(w.deadline) - datetime.now()).days <= days]
+        if not expiring:
+            print("  Nothing expiring soon.")
+        for item in sorted(expiring, key=lambda w: w.deadline):
+            remaining = (datetime.fromisoformat(item.deadline) - datetime.now()).days
+            print(f"  [{item.priority}] {item.name}")
+            print(f"    Deadline: {item.deadline} ({remaining} days left)")
+            print(f"    Effort: {item.effort_hours}h | Reward: ${item.reward_usd:,}")
+            print()
     elif args.bittensor:
         data = asyncio.run(fetch_bittensor_data())
         if args.json:

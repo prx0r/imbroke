@@ -2,7 +2,7 @@
 from __future__ import annotations
 import httpx
 from typing import Any
-from ..oracle.opportunity import Opportunity, estimate_qdw_fit
+from ..opportunity import Opportunity, estimate_qdw_fit
 
 TIMEOUT = httpx.Timeout(15.0)
 
@@ -26,6 +26,7 @@ async def fetch_hackathons_space() -> list[Opportunity]:
                             kind="hackathon",
                             title=title[:100],
                             sponsor=h.get("organizer", ""),
+            discovered_at="",
                             deadline=deadline,
                             reward_type="cash",
                             reward_confidence=0.7,

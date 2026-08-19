@@ -23,6 +23,7 @@ async def fetch_near_funding() -> list[Opportunity]:
                             kind="grant",
                             title=f"NEAR: {title[:80]}",
                             sponsor="NEAR",
+            discovered_at="",
                             source="near_gov",
                             source_url=f"https://gov.near.org/t/{t.get('slug', '')}",
                             rating="B",

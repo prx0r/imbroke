@@ -22,6 +22,7 @@ async def discover_heurist_services() -> list[Opportunity]:
                             kind="service",
                             title=f"Heurist: {agent.get('name', agent.get('tool_name', ''))[:80]}",
                             sponsor="Heurist",
+            discovered_at="",
                             reward_type="recurring_revenue",
                             source="heurist",
                             source_url="https://mesh.heurist.ai",

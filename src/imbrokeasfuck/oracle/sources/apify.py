@@ -24,6 +24,7 @@ async def discover_apify_actors() -> list[Opportunity]:
                         kind="service",
                         title=f"Apify: {actor.get('name', '')[:80]}",
                         sponsor=actor.get("username", ""),
+            discovered_at="",
                         reward_type="recurring_revenue",
                         source="apify",
                         source_url=actor.get("url", ""),

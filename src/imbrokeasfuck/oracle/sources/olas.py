@@ -22,6 +22,7 @@ async def discover_olas_mechs() -> list[Opportunity]:
                             kind="service",
                             title=f"Olas: {mech.get('name', mech.get('service_id', ''))[:80]}",
                             sponsor="Olas",
+            discovered_at="",
                             reward_type="recurring_revenue",
                             source="olas",
                             source_url="https://olas.network/mech-marketplace",
